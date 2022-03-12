@@ -1,5 +1,12 @@
 # dynamic-dashboard-front
 
+## Project location
+* Clone this repository in the same folder level as the backend repository
+* Your folder structure should look like this:
+    ```
+    .../dynamic-dashboard-back
+    .../dynamic-dashboard-front
+    ```
 ## Project setup
 ```
 npm install
