@@ -1,0 +1,1 @@
+{"version":3,"file":"column.js","sourceRoot":"","sources":["column.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,iBAAiB,EAAsB,MAAM,QAAQ,CAAC;AAG/D,MAAM,OAAO,mBAAoB,SAAQ,iBAAqC;IAE1E,YAAY,YAAkC;QAC1C,KAAK,CAAC,YAAY,CAAC,CAAC;IACxB,CAAC;IAED,uBAAuB;QACnB,MAAM,IAAI,KAAK,CAAC,yBAAyB,CAAC,CAAC;IAC/C,CAAC;CACJ"}
