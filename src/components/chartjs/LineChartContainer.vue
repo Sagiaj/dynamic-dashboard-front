@@ -144,7 +144,7 @@
           </v-col>
           <v-col cols="12">
               <div class="container">
-                <line-chart v-if="chartData.datasets.length > 0" :chart-data.sync="chartData" @updateSeries="updateSeries" @stopLiveUpdate="stopLiveUpdate" @getChartData="getChartData" :height="140"
+                <line-chart v-if="displayChart" :chart-data.sync="chartData" @updateSeries="updateSeries" @stopLiveUpdate="stopLiveUpdate" @getChartData="getChartData" :height="140"
                   :chartOptions.sync="chartOptions" :reset="resetChart" ref="liveChart" @click-chart-element="(el) => {}"/>
                 <v-skeleton-loader
                   v-else
@@ -211,12 +211,16 @@ export default {
   components: { LineChart },
   props: ["SystemData"],
   computed: {
+    displayChart() {
+      return this.finishedFetchingData || this.chartData.datasets.length > 0;
+    },
     chosenTimeRange() {
       return !this.timeToModal && !this.timeFromModal && this.timeTo && this.timeFrom && this.timeFrom < this.timeTo;
     }
   },
   methods: {
-    startLiveUpdate() {
+    startLiveUpdate(from, to) {
+      this.finishedFetchingData = false;
       this.liveMode = true;
       this.firstFetched = false;
       this.resetDisabled = true;
@@ -225,7 +229,9 @@ export default {
       if (this.$refs.liveChart) {
         // this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
       }
-      this.updateSeries(moment().utc().unix() * 1000 - (60 * (60 * 1000)), moment().utc().unix() * 1000 - 1000);
+      this.updateSeries(from || moment().utc().unix() * 1000 - (60 * (60 * 1000)), to || moment().utc().unix() * 1000 - 1000).then(() => {
+        this.finishedFetchingData = true;
+      });
       // this.setupCleanupInterval();
       if (this.$refs.liveChart) {
         // this.$refs.liveChart.chart.resetZoom();
@@ -240,11 +246,12 @@ export default {
       // if (this.$refs.liveChart) {
         // this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
       // }
-      this.updateSeries(null, moment().utc().unix() * 1000 - 1000);
+      this.updateSeries(null, moment().utc().unix() * 1000 - 1000).then(r => {
+        this.finishedFetchingData = true;
+      });
       // this.setupCleanupInterval();
       if (this.$refs.liveChart) {
         this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
-        console.log("check?", this.$refs.liveChart.onRefresh, this.$refs.liveChart.$data._chart.options.plugins.streaming)
         this.$refs.liveChart.chart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
         this.$refs.liveChart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
         this.$refs.liveChart.$data._chart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
@@ -271,6 +278,7 @@ export default {
       }, 10000);
     },
     stopLiveUpdate() {
+      // this.finishedFetchingData = false;
       this.liveMode = false;
       this.$refs.liveChart.chart.options.plugins.streaming.pause = true;
       // this.chartOptions.plugins.streaming.pause = true;
@@ -283,12 +291,14 @@ export default {
       }
     },
     async getChartData(min, max, chart, live) {
+      // this.finishedFetchingData = true;
       const dataPoints = await DataService.getDetections(Number(min), Number(max));
       let { timestamps, ...detections } = dataPoints;
       const datapointsPerSerie = this.getSerieDataPointsFromDetections(detections);
       await this.resetGraphHistory(datapointsPerSerie);
       const keys = Object.keys(timestamps).map(Number)
       this.lastFetched = Math.max(...keys);
+      this.finishedFetchingData = true;
     },
     async resetGraphHistory(datapointsPerSerie) {
       try {
@@ -417,7 +427,8 @@ export default {
         labels: [],
         datasets: [],
         bufferedDatasets: []
-      }
+      },
+      finishedFetchingData: false
     };
   },
 };

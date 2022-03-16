@@ -112,6 +112,16 @@ class APIDataService extends AxiosService {
       throw err;
     }
   }
+  
+  async getCartridgeDates() {
+    try {
+      const url = `/system/cartridge`;
+      let data = await this.send(url, AxiosService.HTTP_METHODS.get);
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  }
 }
 
 const apiDataService = new APIDataService();

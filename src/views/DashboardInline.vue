@@ -25,7 +25,7 @@
               </MaterialCard>
           </v-col>
       </v-row>
-      <alerts-row :SystemData="SystemData" :notifications="notifications"/>
+      <alerts-row :SystemData="SystemData" :notifications="notifications" :CartridgeDates="CartridgeDates" />
     </v-container>
 </template>
 
@@ -57,11 +57,20 @@ export default {
           this.SystemData.system_status = system.system_status;
         }
       } catch (err) {
-        console.log("Failed fetching system threshold status");
+        console.log("Failed fetching system threshold status. Error=", err);
+      }
+      try {
+        const dates = await DataService.getCartridgeDates();
+        if (dates) {
+          this.CartridgeDates = dates;
+        }
+      } catch (err) {
+        console.log("Failed fetching cartridge dates. Error=", err);
       }
     },
     data() {
         return {
+          CartridgeDates: {},
           notifications: [],
           SystemData: {
             threshold: 0,

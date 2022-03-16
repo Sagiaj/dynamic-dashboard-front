@@ -12,6 +12,7 @@
     ></v-select>
     <div id="chart" v-if="!loading">
       <apexchart
+        v-if="currentSeries && currentChartOptions[currentSeries]"
         type="pie"
         width="380"
         :options="currentChartOptions"
@@ -33,6 +34,10 @@ export default {
     this.loading = true;
     try {
       const total_detections = await DataService.getTotalDetectionsByType();
+      if (!total_detections || (total_detections && total_detections.length < 1)) {
+        this.loading = false;
+        return;
+      }
       const detection_distributions = {};
       const objectTypes = [];
       const chartOptions = {};

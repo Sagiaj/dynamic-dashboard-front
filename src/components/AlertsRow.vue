@@ -65,8 +65,18 @@
                   </v-card-text>
                 </v-card>
               </v-col>
-              <v-col cols="12">
-                
+              <v-col cols="12" class="mt-5">
+                <v-card>
+                  <v-card-title primary-title>
+                    <div>
+                      <h3 class="headline mb-0">Cartridge status</h3>
+                      <span class="text--secondary">Days left: <span :class="`${progressData.color}--text`">{{ progressData.value }}</span></span>
+                    </div>
+                  </v-card-title>
+                  <v-card-text v-if="CartridgeDates">
+                    <v-progress-linear :color="progressData.color" :value="progressData.value" stream :buffer-value="0" :height="20" striped></v-progress-linear>
+                  </v-card-text>
+                </v-card>
               </v-col>
             </v-row>
           </v-col>
@@ -77,10 +87,43 @@
 </template>
 
 <script>
-import DataService from '@/api/services/data-service';
 export default {
     name: "AlertsRow",
-    props: ["SystemData", "notifications"],
+    props: ["SystemData", "notifications", "CartridgeDates"],
+    computed: {
+      daysLeft() {
+        return Number(this.CartridgeDates.left_until_finish);
+      },
+      progressData() {
+        const data = {
+          color: "light-grey",
+          value: 0
+        };
+        if (!this.CartridgeDates) {
+          return data;
+        }
+        if (!Number.isInteger(this.daysLeft)) {
+          data.value = "";
+          return data;
+        }
+        if (this.daysLeft < 0) {
+          data.color = "red";
+          data.value = 100;
+          return data;
+        }
+        data.value = 100 - ( (this.daysLeft / 30) * 100 );
+        if (data.value < 25) {
+          data.color = "light-blue";
+        } else if (data.value < 50) {
+          data.color = "light-green darken-4";
+        } else if (data.value < 75) {
+          data.color = "lime";
+        } else if (data.value >= 75) {
+          data.color = "orange";
+        }
+        return data;
+      }
+    },
     data() {
         return {
             alert: true,

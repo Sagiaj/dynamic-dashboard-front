@@ -41,7 +41,6 @@ export default {
   methods: {
     onRefresh(chart) {
       if (this.liveMode) {
-        console.log(this.chart)
         this.$emit("updateSeries");
       }
     },
