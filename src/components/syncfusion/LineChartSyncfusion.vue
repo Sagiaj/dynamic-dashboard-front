@@ -64,7 +64,7 @@ export default {
       // if (dataPoints && dataPoints.timestamps && datapoints.timestamps.length > 0) {
       //   if (!this.firstFetched) {
       //     this.firstFetched = true;
-      //     this.lastFetched = moment().utc().unix() * 1000;
+      //     this.lastFetched = moment().unix() * 1000;
       //   } else {
       //     this.lastFetched = this.lastFetched + 1000;
       //   }
@@ -102,19 +102,19 @@ export default {
         timezoneOffset: new Date().getTimezoneOffset() * 1000,
         objectTypes: ["y","y1","y2","y3","y4"],
         seriesData: [
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
-            // { x: moment().utc().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) }
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) },
+            // { x: moment().unix()*1000 + Math.floor(Math.random() * 84600), y: Math.floor(Math.random() * 100), y1: Math.floor(Math.random() * 100), y2: Math.floor(Math.random() * 100), y3: Math.floor(Math.random() * 100), y4: Math.floor(Math.random() * 100) }
               ],
       primaryXAxis: {
             title: 'Seconds',

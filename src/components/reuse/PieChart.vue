@@ -67,6 +67,7 @@ export default {
       this.objectTypes = objectTypes;
       this.series = series;
       this.chartOptions = chartOptions;
+      console.log("finished", this.currentSeries)
     } catch (err) {
       console.log("Failed fetching total detections by type. Error=", err);
     }

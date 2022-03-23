@@ -1,28 +1,35 @@
 <template>
-    <v-container grid-list-xl>
-      <v-row justify="space-around">
-          <v-col cols="12">
-              <MaterialCard title="Live object data" titleType="alert" text="Real-time detections">
-                <LineGraphChartContainer :SystemData.sync="SystemData" />
-              </MaterialCard>
-          </v-col>
-          <v-col cols="12" class="mx-auto text-center">
-            <v-alert color="warning" outlined :value="true"	transition="fade-transition" width="50%" class="mx-auto">
-              <div>
-                <h3 class="headline mb-0">Last contamination alert</h3>
-              </div>
-              {{ (notifications && notifications[0] && new Date(notifications[0].timestamp)) || "Unknown" }}
+    <v-container fluid>
+      <h4>
+        Bacterial Water Scanner
+      </h4>
+      <v-row no-gutters>
+        <v-col class="my-0 py-0" cols="3">
+          <v-divider></v-divider>
+        </v-col>
+      </v-row>
+      <LineGraphChartContainer :SystemData.sync="SystemData" />
+      <v-row justify="space-between" dense>
+          <v-col cols="12" class="my-0 py-0 text-center">
+            <v-alert color="warning" outlined dense :value="true"	transition="fade-transition" class="mx-auto py-0 my-0" style="width: fit-content;">
+              Last contamination alert - <b>{{ (notifications && notifications[0] && new Date(notifications[0].timestamp)) || "Unknown" }}</b>
             </v-alert>
           </v-col>
-          <v-col cols="12" md="3">
-              <MaterialCard title="Object detections hourly average" titleType="alert" text="[Last 10 hours]">
+          <v-col cols="12" md="5">
+            <v-card elevation="5">
+              <v-card-text>
+                <div class="mx-auto">Daily detection size distribution - <span class="text--thin">[Micron units]</span></div>
                 <PieChart />
-              </MaterialCard>
+              </v-card-text>
+            </v-card>
           </v-col>
-          <v-col cols="12" md="9">
-              <MaterialCard title="Daily detection size distribution" titleType="alert" text="[um units per 1mL]">
+          <v-col cols="12" md="7">
+            <v-card>
+              <v-card-text>
+                <div class="mx-auto">Object detections hourly average - <span class="text--thin">[Last 10 hours]</span></div>
                 <ColumnsChart /> 
-              </MaterialCard>
+              </v-card-text>
+            </v-card>
           </v-col>
       </v-row>
       <alerts-row :SystemData="SystemData" :notifications="notifications" :CartridgeDates="CartridgeDates" />

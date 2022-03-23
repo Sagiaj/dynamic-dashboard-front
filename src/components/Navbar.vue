@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer permanent app>
+  <v-navigation-drawer permanent expand-on-hover :mini-variant.sync="miniVariant" app>
     <v-list>
       <v-list-item class="px-2">
         <v-list-item-avatar size="50px">
@@ -55,6 +55,7 @@ export default {
   },
   data() {
     return {
+      miniVariant: true,
       dashboardMode: 0
     };
   },

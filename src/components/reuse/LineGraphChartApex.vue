@@ -80,7 +80,7 @@ export default {
       if (dataPoints && dataPoints.timestamps && categories && categories.length > 0) {
         if (!this.firstFetched) {
           this.firstFetched = true;
-          this.lastFetched = moment().utc().unix() * 1000;
+          this.lastFetched = moment().unix() * 1000;
         } else {
           this.lastFetched = this.lastFetched + 1000;
         }
@@ -115,7 +115,7 @@ export default {
     return {
       series: [],
       chartOptions: lineGraphChartOptions,
-      // lastFetched: moment().utc().unix() * 1000,
+      // lastFetched: moment().unix() * 1000,
       lastFetched: moment().utc().startOf("day").unix() * 1000,
       categories: [],
       seriesData: [],

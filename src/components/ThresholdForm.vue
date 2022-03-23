@@ -1,8 +1,8 @@
 <template>
-  <v-container grid-list-xs>
+  <v-container fluid>
     <v-form ref="form" v-model="thresholdIsValid">
-      <v-container grid-list-xs>
-        <v-row justify="space-around">
+      <v-container fluid>
+        <v-row justify="center">
           <v-col cols="3" align-self="center">
             <v-text-field
               clearable
@@ -14,14 +14,16 @@
               @blur="$v.threshold.$touch()"
             >
             </v-text-field>
-              <v-btn class="mr-4"
-                color="primary"
-                :loading="savingThreshold"
-                @click.native="saveDailyThreshold"
-                :disabled="savingThreshold"
-              >
-                Save Daily Threshold
-              </v-btn>
+          </v-col>
+          <v-col cols="3" align-self="center">
+            <v-btn class="mr-4"
+              color="primary"
+              :loading="savingThreshold"
+              @click.native="saveDailyThreshold"
+              :disabled="savingThreshold"
+            >
+              Save Daily Threshold
+            </v-btn>
           </v-col>
         </v-row>
       </v-container>

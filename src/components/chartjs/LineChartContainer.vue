@@ -1,25 +1,40 @@
 <template>
-  <v-container grid-list-xl>
-      <v-row align-content="center">
+  <v-container fluid class="py-0">
+    <div class="container">            
+      <line-chart v-if="displayChart" :chart-data.sync="chartData" @updateSeries="updateSeries" @stopLiveUpdate="stopLiveUpdate" @getChartData="getChartData" :height="140"
+        :chartOptions.sync="chartOptions" :reset="resetChart" ref="liveChart" @click-chart-element="(el) => {}"/>
+      <v-skeleton-loader
+        v-else
+        v-bind="attrs"
+        type="card-avatar, article, actions"
+      ></v-skeleton-loader>
+    </div>
+      <v-row no-gutters>
           <v-col cols="12" align-self="center">
-            <v-row justify="space-around">
+            <v-row justify="space-around" no-gutters>
               <v-col cols="6" align-self="center">
-                <v-row>
-                  <v-col cols="5" align-self="center">
+                <v-row no-gutters>
+                  <v-col cols="5" align-self="center" no-gutters>
                     <v-btn
                       rounded
                       color="primary"
                       :loading="loading"
                       @click.native="startLiveUpdate"
                       :disabled="resetDisabled"
-                      class="background--text"
+                      class="background--text text-caption"
                     >
-                      Reset to Standard Live view
-                      <v-icon right dark>mdi-reset</v-icon>
+                      Reset Zoom
+                      <v-icon right dark>mdi-restart</v-icon>
                     </v-btn>
                   </v-col>
-                  <v-col cols="4" align-self="center">
-                    <v-btn
+                  <v-col cols="6" align-self="center">
+                    <v-switch
+                      v-model="liveMode"
+                      color="primary"
+                      :label="`Live Mode: ${liveMode ? 'On' : 'Off'}`"
+                      :loading="loading"
+                    ></v-switch>
+                    <!-- <v-btn
                       rounded
                       color="primary"
                       :loading="loading"
@@ -27,131 +42,101 @@
                       :disabled="liveMode"
                       class="background--text"
                     >
-                      Turn on live update
+                      Live
                       <v-icon right dark>mdi-reset</v-icon>
-                    </v-btn>
+                    </v-btn> -->
                   </v-col>
-                  <!-- <v-col cols="4" align-self="center">
-                    <v-row justify="space-between" align-content="center">
-                      <v-col cols="6" align-self="center"></v-col>
-                      <v-divider vertical></v-divider>
-                      <v-col cols="6"></v-col>
-                    </v-row>
-                  </v-col> -->
                 </v-row>
               </v-col>
-              <v-col cols="6" align-self="center">
-                <v-card>
-                  <v-card-title primary-title>
-                    <div>
-                      <h3 class="headline mb-0">Choose time range</h3>
-                    </div>
-                  </v-card-title>
-                  <v-card-text>
-                    <v-row>
-                      <v-col cols="6">
-                        <v-dialog
-                          ref="dialogFrom"
-                          v-model="timeFromModal"
-                          :return-value.sync="timeFrom"
-                          max-width="350px"
-                          persistent
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-text-field
-                              v-model="timeFrom"
-                              clearable
-                              label="From"
-                              prepend-icon="mdi-clock-time-four-outline"
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                            ></v-text-field>
-                          </template>
-                          <v-time-picker
-                            clearable
-                            use-seconds
-                            v-if="timeFromModal"
-                            v-model="timeFrom"
-                            full-width
-                          >
-                            <v-spacer></v-spacer>
-                            <v-btn
-                              text
-                              color="primary"
-                              @click="timeFromModal = false"
-                            >
-                              Cancel
-                            </v-btn>
-                            <v-btn
-                              text
-                              color="primary"
-                              @click="$refs.dialogFrom.save(timeFrom)"
-                            >
-                              OK
-                            </v-btn>
-                          </v-time-picker>
-                        </v-dialog>
-                      </v-col>
-                      <v-col cols="6">
-                        <v-dialog
-                          ref="dialogTo"
-                          v-model="timeToModal"
-                          :return-value.sync="timeTo"
-                          max-width="350px"
-                          persistent
-                        >
-                          <template v-slot:activator="{ on, attrs }">
-                            <v-text-field
-                              clearable
-                              v-model="timeTo"
-                              label="To"
-                              prepend-icon="mdi-clock-time-four-outline"
-                              readonly
-                              v-bind="attrs"
-                              v-on="on"
-                            ></v-text-field>
-                          </template>
-                          <v-time-picker
-                            use-seconds
-                            v-if="timeToModal"
-                            v-model="timeTo"
-                            full-width
-                          >
-                            <v-spacer></v-spacer>
-                            <v-btn
-                              text
-                              color="primary"
-                              @click="timeToModal = false"
-                            >
-                              Cancel
-                            </v-btn>
-                            <v-btn
-                              text
-                              color="primary"
-                              @click="$refs.dialogTo.save(timeTo)"
-                            >
-                              OK
-                            </v-btn>
-                          </v-time-picker>
-                        </v-dialog>
-                      </v-col>
-                    </v-row>
-                  </v-card-text>
-                </v-card>
+              <v-col cols="3" align-self="center">
+                <v-dialog
+                  ref="dialogFrom"
+
+                  v-model="timeFromModal"
+                  :return-value.sync="timeFrom"
+                  max-width="350px"
+                  persistent
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      v-model="timeFrom"
+                      clearable
+                      label="Begin From"
+                      prepend-icon="mdi-clock-time-four-outline"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-time-picker
+                    clearable
+                    use-seconds
+                    v-if="timeFromModal"
+                    v-model="timeFrom"
+                    full-width
+                  >
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      text
+                      color="primary"
+                      @click="timeFromModal = false"
+                    >
+                      Cancel
+                    </v-btn>
+                    <v-btn
+                      text
+                      color="primary"
+                      @click="$refs.dialogFrom.save(timeFrom)"
+                    >
+                      OK
+                    </v-btn>
+                  </v-time-picker>
+                </v-dialog>
+              </v-col>
+              <v-col cols="3">
+                <v-dialog
+                  ref="dialogTo"
+                  v-model="timeToModal"
+                  :return-value.sync="timeTo"
+                  max-width="350px"
+                  persistent
+                >
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-text-field
+                      clearable
+                      v-model="timeTo"
+                      label="End At"
+                      prepend-icon="mdi-clock-time-four-outline"
+                      readonly
+                      v-bind="attrs"
+                      v-on="on"
+                    ></v-text-field>
+                  </template>
+                  <v-time-picker
+                    use-seconds
+                    v-if="timeToModal"
+                    v-model="timeTo"
+                    full-width
+                  >
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      text
+                      color="primary"
+                      @click="timeToModal = false"
+                    >
+                      Cancel
+                    </v-btn>
+                    <v-btn
+                      text
+                      color="primary"
+                      @click="$refs.dialogTo.save(timeTo)"
+                    >
+                      OK
+                    </v-btn>
+                  </v-time-picker>
+                </v-dialog>
               </v-col>
             </v-row>
-          </v-col>
-          <v-col cols="12">
-              <div class="container">
-                <line-chart v-if="displayChart" :chart-data.sync="chartData" @updateSeries="updateSeries" @stopLiveUpdate="stopLiveUpdate" @getChartData="getChartData" :height="140"
-                  :chartOptions.sync="chartOptions" :reset="resetChart" ref="liveChart" @click-chart-element="(el) => {}"/>
-                <v-skeleton-loader
-                  v-else
-                  v-bind="attrs"
-                  type="card-avatar, article, actions"
-                ></v-skeleton-loader>
-            </div>
           </v-col>
       </v-row>
   </v-container>
@@ -229,7 +214,7 @@ export default {
       if (this.$refs.liveChart) {
         // this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
       }
-      this.updateSeries(from || moment().utc().unix() * 1000 - (60 * (60 * 1000)), to || moment().utc().unix() * 1000 - 1000).then(() => {
+      this.updateSeries(from || (moment().unix() * 1000 - 60 * 1000 ), to || ( moment().unix() * 1000 - 1000) ).then(() => {
         this.finishedFetchingData = true;
       });
       // this.setupCleanupInterval();
@@ -241,12 +226,12 @@ export default {
       this.liveMode = true;
       this.firstFetched = true;
       // this.resetDisabled = true;
-      // this.lastFetched = moment().utc().unix() * 1000 - 60 * 1000;
+      // this.lastFetched = moment().unix() * 1000 - 60 * 1000;
       // this.chartData.datasets = [];
       // if (this.$refs.liveChart) {
         // this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
       // }
-      this.updateSeries(null, moment().utc().unix() * 1000 - 1000).then(r => {
+      this.updateSeries(null, moment().unix() * 1000 - 1000).then(r => {
         this.finishedFetchingData = true;
       });
       // this.setupCleanupInterval();
@@ -263,8 +248,8 @@ export default {
     setupCleanupInterval() {
       const that = this;
       this.memoryClearupInterval = setInterval(() => {
-        const min = moment().utc().unix() * 1000 - 60 * 1000 + 1;
-        const max = moment().utc().unix() * 1000 + 5 * 1000;
+        const min = moment().unix() * 1000 - 60 * 1000 + 1;
+        const max = moment().unix() * 1000 + 5 * 1000;
         // this.chartData.datasets = [];
         that.getChartData(min, max, null, true).then(() => {
           this.chartOptions.plugins.annotations = annotationsConfig;
@@ -313,6 +298,7 @@ export default {
       this.loading = true;
       try {
         const currentts = this.lastFetched + 1000;
+        console.log("UPDATING", (from || this.lastFetched) + 1, to || currentts)
         const dataPoints = await DataService.getDetections((from || this.lastFetched) + 1, to || currentts);
         let { timestamps, ...detections } = dataPoints;
         timestamps = Object.keys(timestamps);
@@ -323,7 +309,7 @@ export default {
         if (dataPoints && dataPoints.timestamps && timestamps.length > 0) {
           if (!this.firstFetched) {
             this.firstFetched = true;
-            this.lastFetched = moment().utc().unix() * 1000;
+            this.lastFetched = moment().unix() * 1000;
           } else {
             this.lastFetched = currentts;
           }
@@ -379,6 +365,18 @@ export default {
     }
   },
   watch: {
+    liveSwitch(cur, prev) {
+      if (!!cur) {
+        this.tickLiveUpdate();
+      }
+    },
+    liveMode(cur, prev) {
+      if (!!cur) {
+        this.tickLiveUpdate();
+      } else {
+        this.$refs.liveChart.$data.liveMode = false;
+      }
+    },
     chosenTimeRange(cur) {
       if (!cur) { return; }
       const min = moment().utc().toISOString().split("T")[0] + " " + this.timeFrom;
@@ -405,6 +403,7 @@ export default {
   },
   data() {
     return {
+      liveSwitch: true,
       liveMode: true,
       resetDisabled: true,
       loading: false,
@@ -421,7 +420,7 @@ export default {
       rangesAreWatched: false,
       firstFetched: false,
       chartOptions: GlobalChartConfig.chartjs,
-      lastFetched: moment().utc().unix() * 1000 - (60 * (60 * 1000)),
+      lastFetched: moment().unix() * 1000 - (60 * (60 * 1000)),
       resetChart: 0,
       chartData: {
         labels: [],

@@ -70,7 +70,7 @@
                   <v-card-title primary-title>
                     <div>
                       <h3 class="headline mb-0">Cartridge status</h3>
-                      <span class="text--secondary">Days left: <span :class="`${progressData.color}--text`">{{ progressData.value }}</span></span>
+                      <span class="text--secondary">Days left: <span :class="`${progressData.color}--text`">{{ daysLeft }}</span></span>
                     </div>
                   </v-card-title>
                   <v-card-text v-if="CartridgeDates">
@@ -92,7 +92,7 @@ export default {
     props: ["SystemData", "notifications", "CartridgeDates"],
     computed: {
       daysLeft() {
-        return Number(this.CartridgeDates.left_until_finish);
+        return Number(Math.round(this.CartridgeDates.left_until_finish));
       },
       progressData() {
         const data = {

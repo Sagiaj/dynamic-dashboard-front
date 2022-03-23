@@ -1,11 +1,6 @@
 <template>
-    <v-container grid-list-xl>
-        <v-row justify="center">
-            <v-col>
-                <ThresholdForm ref="thresholdForm" :thresholdData.sync="threshold" />
-            </v-col>
-        </v-row>
-        <v-row justify="space-around">
+    <v-container fluid>
+        <v-row justify="space-around" no-gutters>
             <v-col cols="12">
                 <v-data-table
                 :headers="headers"
@@ -38,6 +33,11 @@
                 </v-chip>
               </template>
             </v-data-table>
+            </v-col>
+        </v-row>
+        <v-row justify="center" no-gutters>
+            <v-col>
+                <ThresholdForm ref="thresholdForm" :thresholdData.sync="threshold" />
             </v-col>
         </v-row>
     </v-container>
@@ -86,23 +86,22 @@ export default {
           value: ""
         },
         headers: [
+          { text: 'Start time', value: 'TIME START', sortable: true },
           {
-            text: 'Experiment name',
+            text: 'Test Accuracy',
             align: 'start',
             sortable: true,
             value: 'A',
           },
+          { text: 'Sample name', value: 'BOTTLE NAME' },
+          { text: 'Operator name', value: 'OPERATOR NAME' },
+          { text: 'Bacteria', value: 'Bacteria' },
           { text: '0 - 3 µm', value: '0 - 3 µm', sortable: true },
           { text: '3 - 6 µm', value: '3 - 6 µm', sortable: true },
           { text: '6 - 9 µm', value: '6 - 9 µm', sortable: true },
           { text: '9 - 12 µm', value: '9 - 12 µm', sortable: true },
           { text: '12+ µm', value: '12+ µm', sortable: true },
-          { text: 'Experiment Type', value: 'A' },
-          { text: 'Operator name', value: 'OPERATOR NAME' },
-          { text: 'Start time', value: 'TIME START', sortable: true },
-          { text: 'Bacteria', value: 'Bacteria' },
-          { text: 'Particles', value: 'Total Particles' },
-          { text: 'Bottle name', value: 'BOTTLE NAME' }
+          { text: 'Particles', value: 'Total Particles' }
         ],
         experiments: []
       }

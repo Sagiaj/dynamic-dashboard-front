@@ -80,7 +80,7 @@ class APIDataService extends AxiosService {
         time_from = moment().utc().subtract(1, "year").unix() * 1000;
       }
       if (!time_to) {
-        time_to = moment().utc().unix() * 1000;
+        time_to = moment().unix() * 1000;
       }
       searchParams.set("time_from", String(time_from));
       searchParams.set("time_to", String(time_to));
@@ -116,6 +116,16 @@ class APIDataService extends AxiosService {
   async getCartridgeDates() {
     try {
       const url = `/system/cartridge`;
+      let data = await this.send(url, AxiosService.HTTP_METHODS.get);
+      return data;
+    } catch (err) {
+      throw err;
+    }
+  }
+  
+  async getSystemMode() {
+    try {
+      const url = `/system/system-mode`;
       let data = await this.send(url, AxiosService.HTTP_METHODS.get);
       return data;
     } catch (err) {

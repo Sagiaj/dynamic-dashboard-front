@@ -6,7 +6,7 @@ export const scalesConfig = {
       {
         type: "realtime",
         distribution: "linear",
-        ticks: { max: moment().utc().unix() * 1000 + 5000, min: moment().utc().subtract(1, "hour").unix() * 1000, stepSize: 1, sampleSize: 10 },
+        ticks: { max: moment().unix() * 1000 + 5000, min: moment().utc().subtract(1, "hour").unix() * 1000, stepSize: 1, sampleSize: 10 },
         time: <TimeScale>{
             displayFormats: {
                 hour: 'HH:mm',
