@@ -31,18 +31,24 @@ export default {
       }
     },
     chartData () {
-      this.$data._chart.update()
+      this.$data._chart.update();
     },
     reset: function (newval, oldval) {
-      console.log("resetting zoom!!!!")
       this.resetZoom();
     }
   },
   methods: {
     onRefresh(chart) {
+      console.log("onRefresh triggered")
       if (this.liveMode) {
+        console.log("onRefresh - calling updateSeries")
         this.$emit("updateSeries");
       }
+    },
+    setOnRefresh() {
+      console.log("setting onrefresh");
+      this.liveMode = true;
+      this.options.plugins.streaming.onRefresh = this.onRefresh;
     },
     resetZoom() {
       this.chart.resetZoom();

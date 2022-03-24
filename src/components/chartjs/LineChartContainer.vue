@@ -34,17 +34,6 @@
                       :label="`Live Mode: ${liveMode ? 'On' : 'Off'}`"
                       :loading="loading"
                     ></v-switch>
-                    <!-- <v-btn
-                      rounded
-                      color="primary"
-                      :loading="loading"
-                      @click.native="tickLiveUpdate"
-                      :disabled="liveMode"
-                      class="background--text"
-                    >
-                      Live
-                      <v-icon right dark>mdi-reset</v-icon>
-                    </v-btn> -->
                   </v-col>
                 </v-row>
               </v-col>
@@ -149,6 +138,7 @@ import LineChart from "./LineChart.vue";
 import colors from 'vuetify/lib/util/colors'
 import { GlobalChartConfig } from '@/models/config';
 import { annotationsConfig } from '@/models/config/chartjs/annotations';
+import { streamingConfig } from '@/models/config/chartjs/streaming';
 function addOpacity(color, opacity) {
     const _opacity = Math.round(Math.min(Math.max(opacity || 1, 0), 1) * 255);
     return color + _opacity.toString(16).toUpperCase();
@@ -209,18 +199,10 @@ export default {
       this.liveMode = true;
       this.firstFetched = false;
       this.resetDisabled = true;
-      // this.lastFetched = ;
       this.chartData.datasets = [];
-      if (this.$refs.liveChart) {
-        // this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
-      }
-      this.updateSeries(from || (moment().unix() * 1000 - 60 * 1000 ), to || ( moment().unix() * 1000 - 1000) ).then(() => {
+      this.updateSeries(from || (moment().unix() * 1000 - 60 * 60 * 1000 ), to || ( moment().unix() * 1000 - 1000) ).then(() => {
         this.finishedFetchingData = true;
       });
-      // this.setupCleanupInterval();
-      if (this.$refs.liveChart) {
-        // this.$refs.liveChart.chart.resetZoom();
-      }
     },
     tickLiveUpdate() {
       this.liveMode = true;
@@ -231,17 +213,19 @@ export default {
       // if (this.$refs.liveChart) {
         // this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
       // }
-      this.updateSeries(null, moment().unix() * 1000 - 1000).then(r => {
-        this.finishedFetchingData = true;
-      });
+      // this.updateSeries(null, moment().unix() * 1000 - 1000).then(r => {
+      //   this.finishedFetchingData = true;
+      // });
       // this.setupCleanupInterval();
       if (this.$refs.liveChart) {
+        this.$refs.liveChart.setOnRefresh();
+        this.$refs.liveChart.chart.options.plugins.streaming = streamingConfig;
         this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
         this.$refs.liveChart.chart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
         this.$refs.liveChart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
-        this.$refs.liveChart.$data._chart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
+        // this.$refs.liveChart.$data._chart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
         // this.$refs.liveChart.chart.resetZoom();
-        this.$refs.liveChart.$data._chart.update();
+        // this.$refs.liveChart.$data._chart.update();
         console.log(this.$refs.liveChart.chart)
       }
     },
@@ -253,11 +237,12 @@ export default {
         // this.chartData.datasets = [];
         that.getChartData(min, max, null, true).then(() => {
           this.chartOptions.plugins.annotations = annotationsConfig;
+          this.chartOptions.plugins.streaming = streamingConfig;
           this.chartOptions.plugins.annotations.scaleID = this.chartData.datasets[0].yAxisID;
           this.chartOptions.plugins.annotations.value = this.SystemData.threshold;
           that.loading = false;
           if (that.$refs.liveChart) {
-            that.$refs.liveChart.$data._chart.update();
+            // that.$refs.liveChart.$data._chart.update();
           }
         });
       }, 10000);
@@ -272,7 +257,7 @@ export default {
       this.firstFetched = false;
       clearInterval(this.memoryClearupInterval);
       if (this.$refs.liveChart) {
-        this.$refs.liveChart.$data._chart.update();
+        // this.$refs.liveChart.$data._chart.update();
       }
     },
     async getChartData(min, max, chart, live) {
@@ -297,8 +282,7 @@ export default {
     async updateSeries(from, to) {
       this.loading = true;
       try {
-        const currentts = this.lastFetched + 1000;
-        console.log("UPDATING", (from || this.lastFetched) + 1, to || currentts)
+        const currentts = this.lastFetched + this.accumulatedMs;
         const dataPoints = await DataService.getDetections((from || this.lastFetched) + 1, to || currentts);
         let { timestamps, ...detections } = dataPoints;
         timestamps = Object.keys(timestamps);
@@ -306,13 +290,16 @@ export default {
         const datapointsPerSerie = this.getSerieDataPointsFromDetections(detections);
         this.appendSerieDataPoints(datapointsPerSerie);
 
+        if (!this.firstFetched) {
+          this.firstFetched = true;
+          this.lastFetched = moment().unix() * 1000;
+        }
+
         if (dataPoints && dataPoints.timestamps && timestamps.length > 0) {
-          if (!this.firstFetched) {
-            this.firstFetched = true;
-            this.lastFetched = moment().unix() * 1000;
-          } else {
-            this.lastFetched = currentts;
-          }
+          this.lastFetched = currentts;
+          this.accumulatedMs = 1000;
+        } else {
+          this.accumulatedMs += 1000;
         }
 
         if (this.$refs.liveChart) {
@@ -368,13 +355,13 @@ export default {
     liveSwitch(cur, prev) {
       if (!!cur) {
         this.tickLiveUpdate();
+      } else {
+        this.$refs.liveChart.$data.liveMode = false;
       }
     },
     liveMode(cur, prev) {
       if (!!cur) {
         this.tickLiveUpdate();
-      } else {
-        this.$refs.liveChart.$data.liveMode = false;
       }
     },
     chosenTimeRange(cur) {
@@ -421,6 +408,7 @@ export default {
       firstFetched: false,
       chartOptions: GlobalChartConfig.chartjs,
       lastFetched: moment().unix() * 1000 - (60 * (60 * 1000)),
+      accumulatedMs: 1000,
       resetChart: 0,
       chartData: {
         labels: [],
