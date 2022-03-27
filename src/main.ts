@@ -18,7 +18,6 @@ new Vue({
     let route = "/inline"
     try {
       const system_mode = await ApiDataService.getSystemMode();
-      console.log("Operating in system_mode:", system_mode);
       if (system_mode === "LAB") { route = "/lab"; }
     } catch (err) {
       console.log("Failed getting system mode. Error=", err);

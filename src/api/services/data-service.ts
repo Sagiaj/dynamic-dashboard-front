@@ -6,7 +6,7 @@ class APIDataService extends AxiosService {
     super();
   }
 
-  async getDetections(time_from: number, time_to: number) {
+  async getDetections(time_from: number, time_to: number, density: number) {
     try {
       const url = `/objects/detections`;
       const searchParams = new URLSearchParams();
@@ -15,6 +15,9 @@ class APIDataService extends AxiosService {
       }
       if (time_to) {
         searchParams.set("time_to", String(time_to));
+      }
+      if (density) {
+        searchParams.set("limit", String(density));
       }
       let data = await this.send(`${url}?${searchParams.toString()}`, AxiosService.HTTP_METHODS.get);
       return data;

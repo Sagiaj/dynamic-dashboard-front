@@ -1,5 +1,5 @@
 <template>
-  <v-container grid-list-xl fluid>
+  <v-container fluid>
      <v-select
       label="Object Types"
       autocomplete
@@ -10,9 +10,9 @@
       :items="objectTypes"
       v-model="currentObjectType"
     ></v-select>
-    <div id="chart" v-if="!loading">
+    <div id="chart-pie" v-if="!loading && currentChartOptions">
       <apexchart
-        v-if="currentSeries && currentChartOptions[currentSeries]"
+        v-if="currentSeries"
         type="pie"
         width="380"
         :options="currentChartOptions"
@@ -67,7 +67,6 @@ export default {
       this.objectTypes = objectTypes;
       this.series = series;
       this.chartOptions = chartOptions;
-      console.log("finished", this.currentSeries)
     } catch (err) {
       console.log("Failed fetching total detections by type. Error=", err);
     }

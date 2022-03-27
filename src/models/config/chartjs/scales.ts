@@ -26,5 +26,9 @@ export const scalesConfig = {
         }
       }
     ],
-    yAxes: <ChartYAxe[]>[]
+    yAxes: <ChartYAxe[]>[{
+      scaleLabel: {
+        display: true
+      }
+    }]
 };

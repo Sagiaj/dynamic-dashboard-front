@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="py-0">
-    <div class="container">            
+    <div class="container">
       <line-chart v-if="displayChart" :chart-data.sync="chartData" @updateSeries="updateSeries" @stopLiveUpdate="stopLiveUpdate" @getChartData="getChartData" :height="140"
         :chartOptions.sync="chartOptions" :reset="resetChart" ref="liveChart" @click-chart-element="(el) => {}"/>
       <v-skeleton-loader
@@ -137,8 +137,7 @@ import DataService from "@/api/services/data-service";
 import LineChart from "./LineChart.vue";
 import colors from 'vuetify/lib/util/colors'
 import { GlobalChartConfig } from '@/models/config';
-import { annotationsConfig } from '@/models/config/chartjs/annotations';
-import { streamingConfig } from '@/models/config/chartjs/streaming';
+
 function addOpacity(color, opacity) {
     const _opacity = Math.round(Math.min(Math.max(opacity || 1, 0), 1) * 255);
     return color + _opacity.toString(16).toUpperCase();
@@ -184,7 +183,7 @@ const DatasetSettings = [
 export default {
   name: "LineChartContainer",
   components: { LineChart },
-  props: ["SystemData"],
+  props: ["SystemData", "pointDensity"],
   computed: {
     displayChart() {
       return this.finishedFetchingData || this.chartData.datasets.length > 0;
@@ -200,70 +199,31 @@ export default {
       this.firstFetched = false;
       this.resetDisabled = true;
       this.chartData.datasets = [];
-      this.updateSeries(from || (moment().unix() * 1000 - 60 * 60 * 1000 ), to || ( moment().unix() * 1000 - 1000) ).then(() => {
+      this.getChartData(from || (moment().unix() * 1000 - 60 * 60 * 1000 ), to || ( moment().unix() * 1000 - 1000)).then(() => {
         this.finishedFetchingData = true;
-      });
+      }).then(() => { this.tickLiveUpdate() });
     },
     tickLiveUpdate() {
       this.liveMode = true;
       this.firstFetched = true;
-      // this.resetDisabled = true;
-      // this.lastFetched = moment().unix() * 1000 - 60 * 1000;
-      // this.chartData.datasets = [];
-      // if (this.$refs.liveChart) {
-        // this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
-      // }
-      // this.updateSeries(null, moment().unix() * 1000 - 1000).then(r => {
-      //   this.finishedFetchingData = true;
-      // });
-      // this.setupCleanupInterval();
       if (this.$refs.liveChart) {
         this.$refs.liveChart.setOnRefresh();
-        this.$refs.liveChart.chart.options.plugins.streaming = streamingConfig;
         this.$refs.liveChart.chart.options.plugins.streaming.pause = false;
-        this.$refs.liveChart.chart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
-        this.$refs.liveChart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
-        // this.$refs.liveChart.$data._chart.options.plugins.streaming.onRefresh = this.$refs.liveChart.onRefresh;
-        // this.$refs.liveChart.chart.resetZoom();
-        // this.$refs.liveChart.$data._chart.update();
-        console.log(this.$refs.liveChart.chart)
       }
-    },
-    setupCleanupInterval() {
-      const that = this;
-      this.memoryClearupInterval = setInterval(() => {
-        const min = moment().unix() * 1000 - 60 * 1000 + 1;
-        const max = moment().unix() * 1000 + 5 * 1000;
-        // this.chartData.datasets = [];
-        that.getChartData(min, max, null, true).then(() => {
-          this.chartOptions.plugins.annotations = annotationsConfig;
-          this.chartOptions.plugins.streaming = streamingConfig;
-          this.chartOptions.plugins.annotations.scaleID = this.chartData.datasets[0].yAxisID;
-          this.chartOptions.plugins.annotations.value = this.SystemData.threshold;
-          that.loading = false;
-          if (that.$refs.liveChart) {
-            // that.$refs.liveChart.$data._chart.update();
-          }
-        });
-      }, 10000);
     },
     stopLiveUpdate() {
-      // this.finishedFetchingData = false;
       this.liveMode = false;
       this.$refs.liveChart.chart.options.plugins.streaming.pause = true;
-      // this.chartOptions.plugins.streaming.pause = true;
-      // this.chartOptions.scales.xAxes[0].realtime.pause = true;
       this.resetDisabled = false;
       this.firstFetched = false;
-      clearInterval(this.memoryClearupInterval);
-      if (this.$refs.liveChart) {
-        // this.$refs.liveChart.$data._chart.update();
-      }
     },
     async getChartData(min, max, chart, live) {
       // this.finishedFetchingData = true;
-      const dataPoints = await DataService.getDetections(Number(min), Number(max));
+      const dataPoints = await DataService.getDetections(Number(min), Number(max), Number(this.pointDensity));
       let { timestamps, ...detections } = dataPoints;
+      for (let seriename in this.suggestedMaximums) {
+        this.suggestedMaximums[seriename] = 0;
+      }
       const datapointsPerSerie = this.getSerieDataPointsFromDetections(detections);
       await this.resetGraphHistory(datapointsPerSerie);
       const keys = Object.keys(timestamps).map(Number)
@@ -283,7 +243,7 @@ export default {
       this.loading = true;
       try {
         const currentts = this.lastFetched + this.accumulatedMs;
-        const dataPoints = await DataService.getDetections((from || this.lastFetched) + 1, to || currentts);
+        const dataPoints = await DataService.getDetections((from || this.lastFetched) + 1, to || currentts, Number(this.pointDensity));
         let { timestamps, ...detections } = dataPoints;
         timestamps = Object.keys(timestamps);
 
@@ -301,10 +261,6 @@ export default {
         } else {
           this.accumulatedMs += 1000;
         }
-
-        if (this.$refs.liveChart) {
-          // await this.$refs.liveChart.$data._chart.update();
-        }
       } catch (err) {
         console.log("Failed updateSeries. Error=", err);
       }
@@ -315,39 +271,88 @@ export default {
       for (let serieName in detections) {
           let serie_index = this.chartData.datasets.findIndex(s => s && s.label === serieName);
           if (serie_index === -1) {
-            serie_index = this.chartData.datasets.push({
-                data: [],
-                fill: false,
-                yAxisID: serieName,
-                label: serieName,
-                pointBorderWidth: 1,
-                ...DatasetSettings[this.chartData.datasets.length]
-              }) - 1;
-
-              this.chartOptions.scales.yAxes[serie_index] = {
-                id: serieName,
-                type: "linear",
-                ticks: { max: 50, min: 0, stepSize: 0.1 },
-                ticks: { beginAtZero: true },
-                gridLines: {
-                  display: false
-                }
-              };
+            serie_index = this.createSeriesDataset(serieName);
+          } else {
+            this.updateScaleStyles(serieName, serie_index);
           }
 
           const points_to_push = [];
           for (let seriePoint of detections[serieName]) {
+            this.updateGraphMaximum(seriePoint, serieName, serie_index);
             points_to_push.push({ x: seriePoint.timestamp, y: seriePoint.amount });
           }
           datapointsPerSerie[serieName] = points_to_push;
         }
+        // this.updateGraphMaximumUniform();
         return datapointsPerSerie;
+    },
+    createSeriesDataset(serieName) {
+      let serie_index = this.chartData.datasets.push({
+        data: [],
+        fill: false,
+        yAxisID: serieName,
+        label: serieName,
+        pointBorderWidth: 1,
+        ...DatasetSettings[this.chartData.datasets.length]
+      }) - 1;
+
+      this.chartOptions.scales.yAxes[serie_index] = {
+        id: serieName,
+        type: "linear",
+        // ticks: { max: 50, min: 0, stepSize: 0.1 },
+        ticks: { beginAtZero: true, fontColor: DatasetSettings[this.chartData.datasets.length].borderColor },
+        gridLines: {
+          display: true
+        }
+      };
+
+      this.suggestedMaximums[serieName] = 0;
+      return serie_index;
     },
     appendSerieDataPoints(datapointsPerSerie) {
       for (let serieName in datapointsPerSerie) {
         const serie_index = this.chartData.datasets.findIndex(serie => serie.yAxisID === serieName);
         const points_to_push = datapointsPerSerie[serieName];
         this.chartData.datasets[serie_index].data.push(...points_to_push);
+      }
+    },
+    updateGraphMaximumUniform() {
+      let suggestedMax = 0;
+      for (let i = 0; i < this.chartData.datasets.length; i++) {
+        const dataset = this.chartData.datasets[i];
+        for (let j = 0; j < dataset.data.length; j++) {
+          const currentPoint = dataset.data[j].y;
+          if (suggestedMax < currentPoint) {
+            suggestedMax = currentPoint;
+          }
+        }
+      }
+
+      for (let i = 0; i < this.chartOptions.scales.yAxes.length; i++) {
+        this.chartOptions.scales.yAxes[i].ticks["suggestedMax"] = suggestedMax * 1.5;
+        const serieName = this.chartData.datasets[i].yAxisID;
+          if (this.$refs.liveChart) {
+            this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["suggestedMax"] = suggestedMax * 1.5;
+          }
+      }
+    },
+    updateGraphMaximum(seriePoint, serieName, serie_index) {
+      if (seriePoint.amount > this.suggestedMaximums[serieName]) {
+        this.suggestedMaximums[serieName] = seriePoint.amount * 1.5;
+        this.chartOptions.scales.yAxes[serie_index].ticks["suggestedMax"] = this.suggestedMaximums[serieName];
+        if (this.$refs.liveChart) {
+          this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["suggestedMax"] = this.suggestedMaximums[serieName];
+        }
+      }
+    },
+    updateScaleStyles(serieName, serie_index) {
+      const fontColor = DatasetSettings[serie_index].borderColor;
+      this.chartOptions.scales.yAxes[serie_index].ticks.fontColor = fontColor;
+
+      if (this.$refs.liveChart) {
+        this.$refs.liveChart.$data._chart.scales[serieName].options.ticks.fontColor = fontColor;
+        this.$refs.liveChart.updateChartStyles();
+        this.$refs.liveChart.$data._chart.update();
       }
     }
   },
@@ -370,12 +375,24 @@ export default {
       const max = moment().utc().toISOString().split("T")[0] + " " + this.timeTo;
       const minUtc = moment(min).utc().unix() * 1000;
       const maxUtc = moment(max).utc().unix() * 1000;
-      this.chartOptions.scales.xAxes[0].ticks.min = minUtc;
-      this.chartOptions.scales.xAxes[0].ticks.max = maxUtc;
-      this.$refs.liveChart.$data._chart.scales["x-axis-0"].min = minUtc;
-      this.$refs.liveChart.$data._chart.scales["x-axis-0"].max = maxUtc;
+
+      this.$refs.liveChart.$data._chart.update();
+      const now = (moment().utc().unix() * 1000);
+      const duration = Math.abs(maxUtc - minUtc);
+      let delay = 0;
+      delay = maxUtc - now;
+      if (maxUtc <= now) {
+        delay = delay * (-1);
+      }
+
+      this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.duration = duration;
+      this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.delay = delay;
+      this.$refs.liveChart.$data.liveMode = false;
+      this.$refs.liveChart.$data.chart.options.plugins.streaming.pause = true;
       this.resetDisabled = true;
-      this.getChartData(minUtc, maxUtc);
+      this.getChartData(minUtc, maxUtc).then(r => {
+        this.$refs.liveChart.$data._chart.update();
+      });
     }
   },
   mounted() {
@@ -390,7 +407,7 @@ export default {
   },
   data() {
     return {
-      liveSwitch: true,
+      liveSwitch: false,
       liveMode: true,
       resetDisabled: true,
       loading: false,
@@ -398,13 +415,11 @@ export default {
       timeTo: null,
       timeFromModal: null,
       timeFrom: null,
-      memoryClearupInterval: null,
       attrs: {
         class: 'mb-6',
         boilerplate: true,
         elevation: 2,
       },
-      rangesAreWatched: false,
       firstFetched: false,
       chartOptions: GlobalChartConfig.chartjs,
       lastFetched: moment().unix() * 1000 - (60 * (60 * 1000)),
@@ -412,10 +427,12 @@ export default {
       resetChart: 0,
       chartData: {
         labels: [],
-        datasets: [],
-        bufferedDatasets: []
+        datasets: []
       },
-      finishedFetchingData: false
+      finishedFetchingData: false,
+      suggestedMaximums: {
+        
+      }
     };
   },
 };
