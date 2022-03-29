@@ -1,10 +1,23 @@
 import Chart from "chart.js";
-import { annotationsConfig } from "./annotations";
+// import { annotationsConfig } from "./annotations";
 import { scalesConfig } from "./scales";
 import { streamingConfig } from "./streaming";
 import { zoomConfig } from "./zoom";
 
 export const configOptions = <Chart.ChartOptions>{
+    annotation: {
+        drawTime: "afterDatasetsDraw",
+        annotations: [
+          {
+            type: "line",
+            scaleID: "initial",
+            mode: "horizontal",
+            value: 25,
+            borderColor: "red",
+            borderWidth: 0
+          }
+        ]
+      },
     scales: scalesConfig,
     interaction: {
         intersect: false
@@ -33,7 +46,19 @@ export const configOptions = <Chart.ChartOptions>{
     },
     plugins: {
         zoom: zoomConfig,
-        annotation: annotationsConfig,
+        // annotation: {
+        //     drawTime: "afterDatasetsDraw",
+        //     annotations: [
+        //       {
+        //         type: "line",
+        //         scaleID: "bacteria",
+        //         mode: "horizontal",
+        //         value: 25,
+        //         borderColor: "red",
+        //         borderWidth: 0
+        //       }
+        //     ]
+        //   },
         streaming: streamingConfig
     },
     transitions: {

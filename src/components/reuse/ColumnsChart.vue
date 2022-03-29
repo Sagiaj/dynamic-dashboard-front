@@ -20,7 +20,6 @@ export default {
       let seriesData = await DataService.getDetectionsHourlyAverage();
       seriesData = seriesData.sort((a, b) => b._id.hour - a._id.hour);
       for (let data of seriesData) {
-        if (data._id.type && data._id.type.indexOf("bacteria") !== -1) continue;
         const series_idx = this.series.findIndex(serie => serie && serie.name && serie.name === data._id.type);
 
         if (series_idx === -1) {

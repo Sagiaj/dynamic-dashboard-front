@@ -24,17 +24,16 @@ export const annotationsConfig = {
 		type: 'line',
 	
 		// optional drawTime to control layering, overrides global drawTime setting
-		drawTime: 'afterDatasetsDraw',
+		// drawTime: 'afterDatasetsDraw',
 	
 		// optional annotation ID (must be unique)
-		id: 'red-line',
+		// id: 'red-line',
 	
 		// set to 'vertical' to draw a vertical line
 		mode: 'horizontal',
 	
 		// ID of the scale to bind onto
-		// scaleID: 'particles',
-		scaleID: 'particles',
+		scaleID: 'bacteria',
 	
 		// Data value to draw the line at
 		value: 25,
@@ -50,11 +49,11 @@ export const annotationsConfig = {
 	
 		// Line dash
 		// https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setLineDash
-		borderDash: [2, 2],
+		// borderDash: [2, 2],
 	
 		// Line Dash Offset
 		// https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/lineDashOffset
-		borderDashOffset: 5,
+		// borderDashOffset: 5,
 	
 		label: {
 			// Background color of label, default below

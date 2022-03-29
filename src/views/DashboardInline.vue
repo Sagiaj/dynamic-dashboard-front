@@ -26,7 +26,7 @@
               Last contamination alert - <b>{{ (notifications && notifications[0] && new Date(notifications[0].timestamp)) || "Unknown" }}</b>
             </v-alert>
           </v-col>
-          <v-col cols="12" md="3">
+          <v-col cols="12" md="4">
             <v-card elevation="5">
               <v-card-text>
                 <div class="mx-auto">Daily detection size distribution - <span class="text--thin">[Micron units]</span></div>
@@ -34,7 +34,7 @@
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="12" md="9">
+          <v-col cols="12" md="8">
             <v-card>
               <v-card-text>
                 <div class="mx-auto">Object detections hourly average - <span class="text--thin">[Last 10 hours]</span></div>

@@ -5,7 +5,7 @@ import { GlobalChartConfig } from '@/models/config';
 import chartjsPluginAnnotation from "chartjs-plugin-annotation";
 import "chartjs-plugin-zoom";
 import 'chartjs-plugin-streaming';
-import { annotationsConfig } from '@/models/config/chartjs/annotations';
+// import { annotationsConfig } from '@/models/config/chartjs/annotations';
 
 export default {
   extends:  Line,
@@ -41,7 +41,6 @@ export default {
   methods: {
     onRefresh(chart) {
       if (this.liveMode) {
-        // console.log(this.options.plugins.annotation.annotations[0])
         this.$emit("updateSeries");
       }
     },
@@ -78,7 +77,32 @@ export default {
       }
     },
     updateChartStyles() {
-      this.chart.options.plugins.annotation = annotationsConfig;
+      this.chart.options.plugins.annotation = {
+      drawTime: "afterDatasetsDraw",
+      annotations: [
+        {
+          type: "line",
+          scaleID: "bacteria",
+          mode: "horizontal",
+          value: 25,
+          borderColor: "red",
+          borderWidth: 0
+        }
+      ]
+    };
+      this.$data._chart.options.plugins.annotation = {
+        drawTime: "afterDatasetsDraw",
+        annotations: [
+          {
+            type: "line",
+            scaleID: "bacteria",
+            mode: "horizontal",
+            value: 25,
+            borderColor: "red",
+            borderWidth: 0
+          }
+        ]
+      };
     },
     resetZoom() {
       this.chart.resetZoom();
@@ -86,14 +110,9 @@ export default {
   },
   mounted() {
     Chart.plugins.register([chartjsPluginAnnotation]);
-    this.addPlugin([chartjsPluginAnnotation]);
-    this.options = this.chartOptions || GlobalChartConfig.chartjs.options;
+    this.addPlugin(chartjsPluginAnnotation);
 
-    // ZOOM
-    this.setZoomPluginEvents();
-
-    // STREAMING
-    this.options.plugins.streaming.onRefresh = this.onRefresh;
+    this.options = this.chartOptions || GlobalChartConfig.chartjs;
 
     // ANNOTATION
     this.options.annotation = {
@@ -109,8 +128,29 @@ export default {
         }
       ]
     };
+
+    // ZOOM
+    this.setZoomPluginEvents();
+
+    // STREAMING
+    this.options.plugins.streaming.onRefresh = this.onRefresh;
+
     this.renderChart(this.chartData, this.options);
     this.chart = this.$data._chart;
+    // this.chart.options.annotation = {
+    //   drawTime: "afterDatasetsDraw",
+    //   annotations: [
+    //     {
+    //       type: "line",
+    //       scaleID: "bacteria",
+    //       mode: "horizontal",
+    //       value: 25,
+    //       borderColor: "red",
+    //       borderWidth: 0
+    //     }
+    //   ]
+    // };
+    console.log(this.chart);
   },
   data() {
     return {

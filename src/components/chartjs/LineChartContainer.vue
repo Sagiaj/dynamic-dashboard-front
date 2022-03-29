@@ -137,6 +137,7 @@ import DataService from "@/api/services/data-service";
 import LineChart from "./LineChart.vue";
 import colors from 'vuetify/lib/util/colors'
 import { GlobalChartConfig } from '@/models/config';
+import { annotationsConfig } from '@/models/config/chartjs/annotations';
 
 function addOpacity(color, opacity) {
     const _opacity = Math.round(Math.min(Math.max(opacity || 1, 0), 1) * 255);
@@ -306,6 +307,23 @@ export default {
         }
       };
 
+      if (this.$refs.liveChart) {
+        this.chartOptions.annotation = {
+          drawTime: "afterDatasetsDraw",
+          annotations: [
+            {
+              type: "line",
+              scaleID: "bacteria",
+              mode: "horizontal",
+              value: 25,
+              borderColor: "red",
+              borderWidth: 0
+            }
+          ]
+        };
+        this.$refs.liveChart.chart.options.plugins.annotation = annotationsConfig;
+      }
+
       this.suggestedMaximums[serieName] = 0;
       return serie_index;
     },
@@ -371,6 +389,7 @@ export default {
     },
     chosenTimeRange(cur) {
       if (!cur) { return; }
+      console.log("chosenTimeRange", this.$refs.liveChart.$data);
       const min = moment().utc().toISOString().split("T")[0] + " " + this.timeFrom;
       const max = moment().utc().toISOString().split("T")[0] + " " + this.timeTo;
       const minUtc = moment(min).utc().unix() * 1000;
@@ -382,12 +401,14 @@ export default {
       let delay = 0;
       delay = maxUtc - now;
       if (maxUtc <= now) {
+        console.log("maxutc is in the future. negating")
         delay = delay * (-1);
       }
 
       this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.duration = duration;
       this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.delay = delay;
       this.$refs.liveChart.$data.liveMode = false;
+      this.liveMode = false;
       this.$refs.liveChart.$data.chart.options.plugins.streaming.pause = true;
       this.resetDisabled = true;
       this.getChartData(minUtc, maxUtc).then(r => {

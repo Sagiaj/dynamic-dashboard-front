@@ -1,15 +1,22 @@
 <template>
   <v-container fluid>
-     <v-select
-      label="Object Types"
-      autocomplete
-      :loading="loading"
-      cache-items
-      chips
-      required
-      :items="objectTypes"
-      v-model="currentObjectType"
-    ></v-select>
+    <v-row no-gutters>
+      <v-col style="height: 50px;">
+        <v-radio-group
+          v-model="currentObjectType"
+          row
+        >
+          <v-radio
+            v-for="(type, idx) in objectTypes"
+            cache-items
+            :loading="loading"
+            :label="type"
+            :value="objectTypes[idx]"
+            :key="`${idx}-${type}`"
+          ></v-radio>
+        </v-radio-group>
+      </v-col>
+    </v-row>
     <div id="chart-pie" v-if="!loading && currentChartOptions">
       <apexchart
         v-if="currentSeries"
@@ -59,9 +66,12 @@ export default {
           currentOptions.labels.push(distributionSize);
           currentSeries.push(distributions[distributionSize]);
         }
-        chartOptions[objectType] = currentOptions;
-        series[objectType] = currentSeries;
-        objectTypes.push(objectType);
+        const sum = currentSeries.reduce((s, c) => s+c, 0);
+        if (sum > 0) {
+          chartOptions[objectType] = currentOptions;
+          series[objectType] = currentSeries;
+          objectTypes.push(objectType);
+        }
       }
       this.currentObjectType = objectTypes[0];
       this.objectTypes = objectTypes;
