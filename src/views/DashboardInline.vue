@@ -26,7 +26,7 @@
               Last contamination alert - <b>{{ (notifications && notifications[0] && new Date(notifications[0].timestamp)) || "Unknown" }}</b>
             </v-alert>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" md="5" lg="4" xl="3">
             <v-card elevation="5">
               <v-card-text>
                 <div class="mx-auto">Daily detection size distribution - <span class="text--thin">[Micron units]</span></div>
@@ -34,7 +34,7 @@
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="12" md="8">
+          <v-col cols="12" md="7" lg="8" xl="9">
             <v-card>
               <v-card-text>
                 <div class="mx-auto">Object detections hourly average - <span class="text--thin">[Last 10 hours]</span></div>
@@ -51,16 +51,16 @@
 
 import ColumnsChart from "@/components/reuse/ColumnsChart.vue";
 import LineGraphChartContainer from "@/components/chartjs/LineChartContainer.vue";
+// import LineChartContainerRaw from "@/components/chartjs/LineChartContainerRaw.vue";
 import PieChart from "@/components/reuse/PieChart.vue";
 import MaterialCard from "@/components/reuse/material/Card.vue";
 import MaterialStatsCard from "@/components/reuse/material/StatsCard.vue";
 import AlertsRow from "@/components/AlertsRow.vue";
-import draggable from "vuedraggable";
 import DataService from '@/api/services/data-service';
 
 export default {
     name: "DashboardInline",
-    components: { ColumnsChart, draggable, PieChart, MaterialCard, MaterialStatsCard, LineGraphChartContainer, AlertsRow },
+    components: { ColumnsChart, PieChart, MaterialCard, MaterialStatsCard, LineGraphChartContainer, /*LineChartContainerRaw*/ AlertsRow },
     async beforeMount() {
       try {
         const notifications = await DataService.getLastNotifications(5);

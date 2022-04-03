@@ -1,16 +1,13 @@
 <script>
-import Chart from "chart.js";
 import { Line, mixins } from 'vue-chartjs';
 import { GlobalChartConfig } from '@/models/config';
-import chartjsPluginAnnotation from "chartjs-plugin-annotation";
+import "chartjs-plugin-annotation";
 import "chartjs-plugin-zoom";
 import 'chartjs-plugin-streaming';
-// import { annotationsConfig } from '@/models/config/chartjs/annotations';
 
 export default {
   extends:  Line,
   mixins: [mixins.reactiveProp],
-  extends: Line,
   props: {
     chartData: {
       type: Object,
@@ -51,7 +48,6 @@ export default {
     setZoomPluginEvents() {
       this.options.plugins.zoom.zoom.onZoom = (event) => {
         if (!event.chart.isZooming) {
-          // event.chart.options.scales.xAxes[0].realtime.duration = 3600 * 1000;
           this.liveMode = true;
           event.chart.isZooming = true;
         }
@@ -70,87 +66,38 @@ export default {
       }
       this.options.plugins.zoom.pan.onPanComplete = (event) => {
         const {min, max} = event.chart.scales['x-axis-0'];
-        event.chart.options.plugins.streaming.pause = true;
+        // event.chart.options.plugins.streaming.pause = true;
         this.liveMode = false;
         event.chart.isPanning = false;
         this.$emit("getChartData", min, max, event.chart, false);
       }
     },
     updateChartStyles() {
-      this.chart.options.plugins.annotation = {
-      drawTime: "afterDatasetsDraw",
-      annotations: [
-        {
-          type: "line",
-          scaleID: "bacteria",
-          mode: "horizontal",
-          value: 25,
-          borderColor: "red",
-          borderWidth: 0
-        }
-      ]
-    };
-      this.$data._chart.options.plugins.annotation = {
-        drawTime: "afterDatasetsDraw",
-        annotations: [
-          {
-            type: "line",
-            scaleID: "bacteria",
-            mode: "horizontal",
-            value: 25,
-            borderColor: "red",
-            borderWidth: 0
-          }
-        ]
-      };
+      return;
     },
     resetZoom() {
       this.chart.resetZoom();
     }
   },
   mounted() {
-    Chart.plugins.register([chartjsPluginAnnotation]);
-    this.addPlugin(chartjsPluginAnnotation);
-
     this.options = this.chartOptions || GlobalChartConfig.chartjs;
-
-    // ANNOTATION
-    this.options.annotation = {
-      drawTime: "afterDatasetsDraw",
-      annotations: [
-        {
-          type: "line",
-          scaleID: "bacteria",
-          mode: "horizontal",
-          value: 25,
-          borderColor: "red",
-          borderWidth: 0
-        }
-      ]
-    };
 
     // ZOOM
     this.setZoomPluginEvents();
 
     // STREAMING
     this.options.plugins.streaming.onRefresh = this.onRefresh;
-
-    this.renderChart(this.chartData, this.options);
+    // this.options.plugins.streaming.pause = true;
+    this.renderChart(this.chartData, { 
+      ...this.options,
+      annotation: Object.assign({}, this.options.annotation)
+    })
     this.chart = this.$data._chart;
-    // this.chart.options.annotation = {
-    //   drawTime: "afterDatasetsDraw",
-    //   annotations: [
-    //     {
-    //       type: "line",
-    //       scaleID: "bacteria",
-    //       mode: "horizontal",
-    //       value: 25,
-    //       borderColor: "red",
-    //       borderWidth: 0
-    //     }
-    //   ]
-    // };
-    console.log(this.chart);
+    const that = this;
+    setInterval(function () {
+        that.chart.options.annotation.annotations[0].value = 37;
+        that.chart.update({preservation: true});
+    }, 1000);
   },
   data() {
     return {

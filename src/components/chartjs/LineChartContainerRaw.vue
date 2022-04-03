@@ -1,10 +1,11 @@
 <template>
   <v-container fluid class="py-0">
     <div class="container">
-      <line-chart v-if="displayChart" :chart-data.sync="chartData" @updateSeries="updateSeries" @stopLiveUpdate="stopLiveUpdate" @getChartData="getChartData" :height="140"
-        :chartOptions.sync="chartOptions" :reset="resetChart" ref="liveChart" @click-chart-element="(el) => {}"/>
+        <canvas id="liveChart"></canvas>
+      <!-- <LineChartRaw v-if="displayChart" :chart-data.sync="chartData" @updateSeries="updateSeries" @stopLiveUpdate="stopLiveUpdate" @getChartData="getChartData" :height="140"
+        :chartOptions="chartOptions" :reset="resetChart" ref="liveChart" @click-chart-element="(el) => {}"/> -->
       <v-skeleton-loader
-        v-else
+        v-if="!displayChart"
         v-bind="attrs"
         type="card-avatar, article, actions"
       ></v-skeleton-loader>
@@ -181,7 +182,7 @@ const DatasetSettings = [
 ];
 
 export default {
-  name: "LineChartContainer",
+  name: "LineChartContainerRaw",
   components: { LineChart },
   props: ["SystemData", "pointDensity"],
   computed: {
@@ -193,6 +194,44 @@ export default {
     }
   },
   methods: {
+      setZoomPluginEvents() {
+        this.options.plugins.zoom.zoom.onZoom = (event) => {
+            if (!event.chart.isZooming) {
+                this.liveMode = true;
+                event.chart.isZooming = true;
+            }
+        };
+        this.options.plugins.zoom.zoom.onZoomComplete = (event) => {
+            const {min, max} = event.chart.scales['x-axis-0'];
+            this.liveMode = false;
+            event.chart.isZooming = false;
+            this.$emit("getChartData", min, max, event.chart, false);
+        };
+        this.options.plugins.zoom.pan.onPan = (event) => {
+            if (!event.chart.isPanning) {
+                this.liveMode = true;
+                event.chart.isPanning = true;
+            }
+        }
+        this.options.plugins.zoom.pan.onPanComplete = (event) => {
+            const {min, max} = event.chart.scales['x-axis-0'];
+            // event.chart.options.plugins.streaming.pause = true;
+            this.liveMode = false;
+            event.chart.isPanning = false;
+            this.$emit("getChartData", min, max, event.chart, false);
+            }
+        },
+        updateChartStyles() {
+            return;
+        },
+        resetZoom() {
+            this.chart.resetZoom();
+        },
+      onRefresh(chart) {
+        if (this.liveMode) {
+            this.updateSeries();
+        }
+    },
     startLiveUpdate(from, to) {
       this.finishedFetchingData = false;
       this.firstFetched = false;
@@ -205,23 +244,24 @@ export default {
       this.liveMode = true;
       this.firstFetched = true;
       let ts_in_the_past = this.chartOptions.plugins.streaming.duration;
-      if (this.$refs.liveChart) {
-        ts_in_the_past = this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.duration;
+      if (this.chart) {
+        ts_in_the_past = this.chart.config.scales.xAxes[0].realtime.duration;
       }
       await this.getChartData(moment().unix() * 1000 - ts_in_the_past, moment().unix() * 1000 - 1000);
       this.finishedFetchingData = true;
-      this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.delay = 0;
-      // this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.delay = this.chartOptions.plugins.streaming.delay;
+      console.log('check this chart?', this.chart)
+      this.chart.config.scales.xAxes[0].realtime.delay = 0;
     },
     startStreaming() {
-      if (this.$refs.liveChart) {
-        this.$refs.liveChart.setOnRefresh();
-        this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.pause = false;
+      if (this.chart) {
+        this.liveMode = true;
+        this.chart.onRefresh = this.onRefresh;
+        this.chart.config.scales.xAxes[0].realtime.pause = false;
       }
     },
     stopStreaming() {
-      if (this.$refs.liveChart) {
-        this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.pause = true;
+      if (this.chart) {
+        this.chart.config.scales.xAxes[0].realtime.pause = true;
       }
     },
     stopLiveUpdate() {
@@ -255,6 +295,9 @@ export default {
     async updateSeries(from, to) {
       this.loading = true;
       try {
+        if (this.chart) {
+          // this.chart.clearAnnotation();
+        }
         const currentts = this.lastFetched + this.accumulatedMs;
         const dataPoints = await DataService.getDetections((from || this.lastFetched) + 1, to || currentts, Number(this.pointDensity));
         let { timestamps, ...detections } = dataPoints;
@@ -273,6 +316,9 @@ export default {
           this.accumulatedMs = 1000;
         } else {
           this.accumulatedMs += 1000;
+        }
+        if (this.chart) {
+          this.chart.fillAnnotation();
         }
       } catch (err) {
         console.log("Failed updateSeries. Error=", err);
@@ -308,7 +354,7 @@ export default {
         ...DatasetSettings[this.chartData.datasets.length]
       }) - 1;
 
-      if (this.$refs.liveChart) { this.$refs.liveChart.$data._chart.update(); }
+      if (this.chart) { this.chart.update(); }
 
       this.chartOptions.scales.yAxes[serie_index] = {
         id: serieName,
@@ -320,9 +366,7 @@ export default {
         }
       };
 
-      if (this.$refs.liveChart) {
-        this.$refs.liveChart.$data._chart.update();
-      }
+      if (this.chart) { this.chart.update(); }
 
       this.suggestedMaximums[serieName] = 0;
       return serie_index;
@@ -332,18 +376,17 @@ export default {
         const serie_index = this.chartData.datasets.findIndex(serie => serie.yAxisID === serieName);
         const points_to_push = datapointsPerSerie[serieName];
         this.chartData.datasets[serie_index].data.push(...points_to_push);
-        if (this.$refs.liveChart) {
-          this.$refs.liveChart.$data._chart.update();
-        }
+        if (this.chart) { this.chart.update(); }
       }
     },
     updateGraphMaximum(seriePoint, serieName, serie_index) {
       if ((seriePoint.amount * 1.8) > this.suggestedMaximums[serieName]) {
         this.suggestedMaximums[serieName] = seriePoint.amount * 1.8;
         this.chartOptions.scales.yAxes[serie_index].ticks["suggestedMax"] = this.suggestedMaximums[serieName];
-        if (this.$refs.liveChart) {
-          this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["suggestedMax"] = this.suggestedMaximums[serieName];
-          this.$refs.liveChart.$data._chart.update();
+        if (this.chart) {
+            console.log("this.chart=", this.chart);
+          this.chart.config.scales[serieName].options.ticks["suggestedMax"] = this.suggestedMaximums[serieName];
+          this.chart.update();
         }
       }
     },
@@ -351,10 +394,10 @@ export default {
       const fontColor = DatasetSettings[serie_index].borderColor;
       this.chartOptions.scales.yAxes[serie_index].ticks.fontColor = fontColor;
 
-      if (this.$refs.liveChart) {
-        this.$refs.liveChart.$data._chart.scales[serieName].options.ticks.fontColor = fontColor;
-        this.$refs.liveChart.updateChartStyles();
-        this.$refs.liveChart.$data._chart.update();
+      if (this.chart) {
+        this.chart.chart.scales[serieName].options.ticks.fontColor = fontColor;
+        this.chart.updateChartStyles();
+        this.chart.update();
       }
     }
   },
@@ -363,7 +406,7 @@ export default {
       if (!!cur) {
         this.tickLiveUpdate();
       } else {
-        this.$refs.liveChart.$data.liveMode = false;
+        this.chart.$data.liveMode = false;
       }
     },
     chosenTimeRange(cur) {
@@ -374,7 +417,7 @@ export default {
       const minUtc = moment(min).utc().unix() * 1000;
       const maxUtc = moment(max).utc().unix() * 1000;
 
-      this.$refs.liveChart.$data._chart.update();
+      this.chart.update();
       const now = (moment().utc().unix() * 1000);
       const duration = Math.abs(maxUtc - minUtc);
       let delay = now - maxUtc;
@@ -382,15 +425,18 @@ export default {
       this.resetDisabled = true;
       this.getChartData(minUtc, maxUtc).then(r => {
         this.stopStreaming();
-        this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.duration = duration;
-        this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.delay = delay;
-        this.$refs.liveChart.$data.liveMode = false;
-        this.$refs.liveChart.$data._chart.update();
+        this.chart.config.scales.xAxes[0].realtime.duration = duration;
+        this.chart.config.scales.xAxes[0].realtime.delay = delay;
+        this.chart.$data.liveMode = false;
+        this.chart.update();
         this.liveMode = false;
       });
     }
   },
   mounted() {
+    const ctx = document.getElementById('liveChart').getContext('2d');
+    this.chart = new Chart(ctx, GlobalChartConfig.chartjs);
+
     this.startLiveUpdate();
   },
   beforeRouteLeave(to, from, next) {
@@ -430,4 +476,48 @@ export default {
     };
   },
 };
+
+
+
+
+
+
+
+
+
+
+
+
+// var chartColors = {
+// 	red: 'rgb(255, 99, 132)',
+// 	orange: 'rgb(255, 159, 64)',
+// 	yellow: 'rgb(255, 205, 86)',
+// 	green: 'rgb(75, 192, 192)',
+// 	blue: 'rgb(54, 162, 235)',
+// 	purple: 'rgb(153, 102, 255)',
+// 	grey: 'rgb(201, 203, 207)'
+// };
+
+// function randomScalingFactor() {
+// 	return (Math.random() > 0.5 ? 1.0 : -1.0) * Math.round(Math.random() * 100);
+// }
+
+// function onRefresh(chart) {
+// 	var box = chart.options.annotation.annotations[1];
+// 	var now = Date.now();
+// 	chart.data.datasets.forEach(function(dataset) {
+// 		dataset.data.push({
+// 			x: now,
+// 			y: randomScalingFactor()
+// 		});
+// 	});
+// 	if (!(box.xMax >= now - 22000)) {
+// 		box.xMin = now - 2000;
+// 		box.xMax = now + 8000;
+// 		box.yMin = randomScalingFactor();
+// 		box.yMax = randomScalingFactor();
+// 		chart.update({duration: 0});
+// 	}
+// }
+
 </script>

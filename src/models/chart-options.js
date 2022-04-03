@@ -15,7 +15,8 @@ export const lineGraphChartOptions = {
         enabled: false,
     },
     stroke: {
-        width: [1, 1, 4],
+        curve: "smooth",
+        width: 3,
     },
     title: {
         text: `Live Number of particles per object type`,
@@ -23,9 +24,6 @@ export const lineGraphChartOptions = {
         offsetX: 110,
     },
     xaxis: {
-        // tickPlacement: 'on',
-        // min: 5,
-        // max: 10,
         type: "datetime",
         axisBorder: {
             show: false
@@ -34,10 +32,12 @@ export const lineGraphChartOptions = {
             show: false
         },
         categories: [],
-        range: 60000 // last minute
+        range: 30000 // last minute
     },
     yaxis: [
         {
+            max: 20,
+            min: -10,
             seriesName: "0 - 3",
             show: true,
             axisTicks: {
@@ -59,10 +59,14 @@ export const lineGraphChartOptions = {
                 },
             },
             tooltip: {
+                intersect: false,
+                shared: true,
                 enabled: true,
             },
         },
         {
+            max: 20,
+            min: -10,
             seriesName: "3 - 6",
             show: true,
             opposite: true,
@@ -86,6 +90,8 @@ export const lineGraphChartOptions = {
             },
         },
         {
+            max: 20,
+            min: -10,
             seriesName: "6 - 9",
             show: true,
             opposite: true,
@@ -109,6 +115,8 @@ export const lineGraphChartOptions = {
             },
         },
         {
+            max: 20,
+            min: -10,
             seriesName: "9 - 12",
             show: true,
             opposite: true,
@@ -132,6 +140,8 @@ export const lineGraphChartOptions = {
             },
         },
         {
+            max: 20,
+            min: -10,
             seriesName: "12+",
             show: true,
             opposite: true,
@@ -153,22 +163,76 @@ export const lineGraphChartOptions = {
                     color: "#FEB019",
                 },
             },
-        },
+        }
     ],
     tooltip: {
+        intersect: false,
+        shared: true,
         x: {
             format: "dd MM yyyy HH:mm:ss"
-        },
-        fixed: {
-            enabled: true,
-            position: "topLeft",
-            offsetY: 30,
-            offsetX: 60,
-        },
+        }
     },
     legend: {
         horizontalAlign: "left",
         offsetX: 40,
+    },
+};
+export const ApexChartConfig2 = {
+    chart: {
+        id: "realtime",
+        height: 350,
+        type: "line",
+        animations: {
+            enabled: true,
+            easing: "linear",
+            dynamicAnimation: {
+                speed: 1000,
+            },
+        },
+        toolbar: {
+            show: true,
+        },
+        zoom: {
+            enabled: true,
+            type: 'x',
+            autoScaleYaxis: false,
+            zoomedArea: {
+                fill: {
+                    color: '#90CAF9',
+                    opacity: 0.4
+                },
+                stroke: {
+                    color: '#0D47A1',
+                    opacity: 0.4,
+                    width: 1
+                }
+            }
+        }
+    },
+    dataLabels: {
+        enabled: false,
+    },
+    stroke: {
+        curve: "smooth",
+        width: 3,
+    },
+    title: {
+        text: "Dynamic Updating Chart",
+        align: "left",
+    },
+    markers: {
+        size: 0,
+    },
+    xaxis: {
+        type: "datetime",
+        range: 60000,
+    },
+    yaxis: {
+        max: 20,
+        min: -10
+    },
+    legend: {
+        show: false,
     },
 };
 //# sourceMappingURL=chart-options.js.map

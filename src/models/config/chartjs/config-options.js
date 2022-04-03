@@ -1,29 +1,27 @@
-import Chart from "chart.js";
 // import { annotationsConfig } from "./annotations";
 import { scalesConfig } from "./scales";
 import { streamingConfig } from "./streaming";
 import { zoomConfig } from "./zoom";
-
-export const configOptions = <Chart.ChartOptions>{
+export const configOptions = {
     title: {
         display: true,
         text: 'Per 1ml',
         fontSize: 14,
         position: "left"
     },
-    annotation: {
-        drawTime: "afterDatasetsDraw",
-        annotations: [
-          {
-            type: "line",
-            scaleID: "bacteria",
-            mode: "horizontal",
-            value: 25,
-            borderColor: "red",
-            borderWidth: 0
-          }
-        ]
-    },
+    // annotation: {
+    //     drawTime: "afterDatasetsDraw",
+    //     annotations: [
+    //       {
+    //         type: "line",
+    //         scaleID: "bacteria",
+    //         mode: "horizontal",
+    //         value: 25,
+    //         borderColor: "red",
+    //         borderWidth: 0
+    //       }
+    //     ]
+    //   },
     scales: scalesConfig,
     interaction: {
         intersect: false
@@ -34,7 +32,7 @@ export const configOptions = <Chart.ChartOptions>{
     hover: {
         animationDuration: 0 // duration of animations when hovering an item
     },
-    responsiveAnimationDuration: 0, // animation duration after a resize
+    responsiveAnimationDuration: 0,
     tooltips: {
         mode: 'x',
         intersect: false,
@@ -61,4 +59,5 @@ export const configOptions = <Chart.ChartOptions>{
             }
         }
     }
-}
+};
+//# sourceMappingURL=config-options.js.map
