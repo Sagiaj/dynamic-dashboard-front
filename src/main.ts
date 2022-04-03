@@ -17,8 +17,8 @@ new Vue({
   async beforeMount() {
     let route = "/inline"
     try {
-      const system_mode = await ApiDataService.getSystemMode();
-      if (system_mode === "LAB") { route = "/lab"; }
+      const system_mode: string = await ApiDataService.getSystemMode();
+      if (system_mode && system_mode.toUpperCase().indexOf("LAB") !== -1) { route = "/lab"; }
     } catch (err) {
       console.log("Failed getting system mode. Error=", err);
       route = "/inline";
