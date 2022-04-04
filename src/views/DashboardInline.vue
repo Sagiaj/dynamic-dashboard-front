@@ -51,7 +51,6 @@
 
 import ColumnsChart from "@/components/reuse/ColumnsChart.vue";
 import LineGraphChartContainer from "@/components/chartjs/LineChartContainer.vue";
-// import LineChartContainerRaw from "@/components/chartjs/LineChartContainerRaw.vue";
 import PieChart from "@/components/reuse/PieChart.vue";
 import MaterialCard from "@/components/reuse/material/Card.vue";
 import MaterialStatsCard from "@/components/reuse/material/StatsCard.vue";
@@ -60,7 +59,7 @@ import DataService from '@/api/services/data-service';
 
 export default {
     name: "DashboardInline",
-    components: { ColumnsChart, PieChart, MaterialCard, MaterialStatsCard, LineGraphChartContainer, /*LineChartContainerRaw*/ AlertsRow },
+    components: { ColumnsChart, PieChart, MaterialCard, MaterialStatsCard, LineGraphChartContainer, AlertsRow },
     async beforeMount() {
       try {
         const notifications = await DataService.getLastNotifications(5);

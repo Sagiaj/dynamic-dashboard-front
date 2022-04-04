@@ -17,10 +17,10 @@ export default {
       type: Object,
       default: null,
     },
-    reset: {
+    threshold: {
       type: Number,
       default: 0,
-    },
+    }
   },
   watch: {
     liveMode(newVal) {
@@ -30,9 +30,6 @@ export default {
     },
     chartData () {
       this.$data._chart.update();
-    },
-    reset: function (newval, oldval) {
-      this.resetZoom();
     }
   },
   methods: {
@@ -66,7 +63,6 @@ export default {
       }
       this.options.plugins.zoom.pan.onPanComplete = (event) => {
         const {min, max} = event.chart.scales['x-axis-0'];
-        // event.chart.options.plugins.streaming.pause = true;
         this.liveMode = false;
         event.chart.isPanning = false;
         this.$emit("getChartData", min, max, event.chart, false);
@@ -87,17 +83,26 @@ export default {
 
     // STREAMING
     this.options.plugins.streaming.onRefresh = this.onRefresh;
-    // this.options.plugins.streaming.pause = true;
-    this.renderChart(this.chartData, { 
-      ...this.options,
-      annotation: Object.assign({}, this.options.annotation)
-    })
+    this.renderChart(this.chartData, this.options);
     this.chart = this.$data._chart;
     const that = this;
     setInterval(function () {
-        that.chart.options.annotation.annotations[0].value = 37;
-        that.chart.update({preservation: true});
-    }, 1000);
+      Chart.Annotation.defaults = {
+        drawTime: 'afterDatasetsDraw',
+        dblClickSpeed: 350, // ms
+        events: [],
+        annotations: [
+            {
+              type: "line",
+              scaleID: "bacteria",
+              mode: "horizontal",
+              value: Number(that.threshold),
+              borderColor: "red",
+              borderWidth: 0
+            }
+          ]
+      };
+    }, 200);
   },
   data() {
     return {

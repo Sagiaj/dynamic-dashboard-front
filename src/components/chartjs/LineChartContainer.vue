@@ -2,7 +2,7 @@
   <v-container fluid class="py-0">
     <div class="container">
       <line-chart v-if="displayChart" :chart-data.sync="chartData" @updateSeries="updateSeries" @stopLiveUpdate="stopLiveUpdate" @getChartData="getChartData" :height="140"
-        :chartOptions.sync="chartOptions" :reset="resetChart" ref="liveChart" @click-chart-element="(el) => {}"/>
+        :chartOptions.sync="chartOptions" :threshold="SystemData.threshold" ref="liveChart"/>
       <v-skeleton-loader
         v-else
         v-bind="attrs"
@@ -18,7 +18,6 @@
                     <v-btn
                       rounded
                       color="primary"
-                      :loading="loading"
                       @click.native="startLiveUpdate"
                       :disabled="resetDisabled"
                       class="background--text text-caption"
@@ -32,7 +31,6 @@
                       v-model="liveMode"
                       color="primary"
                       :label="`Live Mode: ${liveMode ? 'On' : 'Off'}`"
-                      :loading="loading"
                     ></v-switch>
                   </v-col>
                 </v-row>
@@ -195,9 +193,9 @@ export default {
   methods: {
     startLiveUpdate(from, to) {
       this.finishedFetchingData = false;
+      this.chartData.datasets = [];
       this.firstFetched = false;
       this.resetDisabled = true;
-      this.chartData.datasets = [];
       this.tickLiveUpdate();
     },
     async tickLiveUpdate() {
@@ -211,7 +209,6 @@ export default {
       await this.getChartData(moment().unix() * 1000 - ts_in_the_past, moment().unix() * 1000 - 1000);
       this.finishedFetchingData = true;
       this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.delay = 0;
-      // this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.delay = this.chartOptions.plugins.streaming.delay;
     },
     startStreaming() {
       if (this.$refs.liveChart) {
@@ -229,9 +226,11 @@ export default {
       this.stopStreaming();
       this.resetDisabled = false;
       this.firstFetched = false;
+      if (this.$refs.liveChart) {
+        this.$refs.liveChart.$data._chart.update();
+      }
     },
     async getChartData(min, max, chart, live) {
-      // this.finishedFetchingData = true;
       const dataPoints = await DataService.getDetections(Number(min), Number(max), Number(this.pointDensity));
       let { timestamps, ...detections } = dataPoints;
       for (let seriename in this.suggestedMaximums) {
@@ -242,6 +241,9 @@ export default {
       const keys = Object.keys(timestamps).map(Number)
       this.lastFetched = Math.max(...keys);
       this.finishedFetchingData = true;
+      if (this.$refs.liveChart) {
+        this.$refs.liveChart.$data._chart.update();
+      }
     },
     async resetGraphHistory(datapointsPerSerie) {
       try {
@@ -253,7 +255,6 @@ export default {
       }
     },
     async updateSeries(from, to) {
-      this.loading = true;
       try {
         const currentts = this.lastFetched + this.accumulatedMs;
         const dataPoints = await DataService.getDetections((from || this.lastFetched) + 1, to || currentts, Number(this.pointDensity));
@@ -277,7 +278,6 @@ export default {
       } catch (err) {
         console.log("Failed updateSeries. Error=", err);
       }
-      this.loading = false;
     },
     getSerieDataPointsFromDetections(detections) {
       const datapointsPerSerie = {};
@@ -313,11 +313,8 @@ export default {
       this.chartOptions.scales.yAxes[serie_index] = {
         id: serieName,
         type: "linear",
-        // ticks: { max: 50, min: 0, stepSize: 0.1 },
         ticks: { beginAtZero: true, fontColor: DatasetSettings[this.chartData.datasets.length].borderColor },
-        gridLines: {
-          display: true
-        }
+        gridLines: { display: true }
       };
 
       if (this.$refs.liveChart) {
@@ -341,8 +338,12 @@ export default {
       if ((seriePoint.amount * 1.8) > this.suggestedMaximums[serieName]) {
         this.suggestedMaximums[serieName] = seriePoint.amount * 1.8;
         this.chartOptions.scales.yAxes[serie_index].ticks["suggestedMax"] = this.suggestedMaximums[serieName];
+        this.chartOptions.scales.yAxes[serie_index].ticks["suggestedMin"] = 0;
+        this.chartOptions.scales.yAxes[serie_index].ticks["min"] = 0;
         if (this.$refs.liveChart) {
           this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["suggestedMax"] = this.suggestedMaximums[serieName];
+          this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["suggestedMin"] = 0;
+          this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["min"] = 0;
           this.$refs.liveChart.$data._chart.update();
         }
       }
@@ -418,7 +419,6 @@ export default {
       chartOptions: GlobalChartConfig.chartjs,
       lastFetched: moment().unix() * 1000 - (60 * (60 * 1000)),
       accumulatedMs: 1000,
-      resetChart: 0,
       chartData: {
         labels: [],
         datasets: []

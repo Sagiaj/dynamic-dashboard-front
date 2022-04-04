@@ -1,5 +1,4 @@
 import Chart from "chart.js";
-// import { annotationsConfig } from "./annotations";
 import { scalesConfig } from "./scales";
 import { streamingConfig } from "./streaming";
 import { zoomConfig } from "./zoom";
@@ -10,19 +9,6 @@ export const configOptions = <Chart.ChartOptions>{
         text: 'Per 1ml',
         fontSize: 14,
         position: "left"
-    },
-    annotation: {
-        drawTime: "afterDatasetsDraw",
-        annotations: [
-          {
-            type: "line",
-            scaleID: "bacteria",
-            mode: "horizontal",
-            value: 25,
-            borderColor: "red",
-            borderWidth: 0
-          }
-        ]
     },
     scales: scalesConfig,
     interaction: {
