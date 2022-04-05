@@ -18,7 +18,7 @@
                     <v-btn
                       rounded
                       color="primary"
-                      @click.native="startLiveUpdate"
+                      @click.native="resetZoom"
                       :disabled="resetDisabled"
                       class="background--text text-caption"
                     >
@@ -191,19 +191,22 @@ export default {
     }
   },
   methods: {
-    startLiveUpdate(from, to) {
+    async resetZoom() {
+      this.resetDisabled = true;
+      await this.startLiveUpdate(true);
+    },
+    async startLiveUpdate(reset_zoom) {
       this.finishedFetchingData = false;
       this.chartData.datasets = [];
       this.firstFetched = false;
-      this.resetDisabled = true;
-      this.tickLiveUpdate();
+      await this.tickLiveUpdate(reset_zoom);
     },
-    async tickLiveUpdate() {
+    async tickLiveUpdate(reset_zoom) {
       this.startStreaming();
       this.liveMode = true;
       this.firstFetched = true;
       let ts_in_the_past = this.chartOptions.plugins.streaming.duration;
-      if (this.$refs.liveChart) {
+      if (this.$refs.liveChart && !reset_zoom) {
         ts_in_the_past = this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.duration;
       }
       await this.getChartData(moment().unix() * 1000 - ts_in_the_past, moment().unix() * 1000 - 1000);
@@ -362,7 +365,9 @@ export default {
   watch: {
     liveMode(cur, prev) {
       if (!!cur) {
-        this.tickLiveUpdate();
+        if (!this.resetDisabled) {
+          this.tickLiveUpdate();
+        }
       } else {
         this.$refs.liveChart.$data.liveMode = false;
       }
