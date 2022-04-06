@@ -316,7 +316,7 @@ export default {
       this.chartOptions.scales.yAxes[serie_index] = {
         id: serieName,
         type: "linear",
-        ticks: { beginAtZero: true, fontColor: DatasetSettings[this.chartData.datasets.length].borderColor },
+        ticks: { beginAtZero: true, fontColor: DatasetSettings[this.chartData.datasets.length].borderColor, fontSize: 18 },
         gridLines: { display: true }
       };
 

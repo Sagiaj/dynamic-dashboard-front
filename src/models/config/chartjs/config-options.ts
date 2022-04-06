@@ -24,17 +24,19 @@ export const configOptions = <Chart.ChartOptions>{
     tooltips: {
         mode: 'x',
         intersect: false,
-        bodyFontSize: 18
+        bodyFontSize: 24
     },
     responsive: true,
     maintainAspectRatio: true,
     legend: {
         labels: {
+            defaultFontSize: 32,
             usePointStyle: true,
             font: {
                 size: 24
             }
         },
+        defaultFontSize: 24
     },
     plugins: {
         zoom: zoomConfig,
