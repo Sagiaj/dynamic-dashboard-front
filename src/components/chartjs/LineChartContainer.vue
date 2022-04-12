@@ -241,8 +241,10 @@ export default {
       }
       const datapointsPerSerie = this.getSerieDataPointsFromDetections(detections);
       await this.resetGraphHistory(datapointsPerSerie);
-      const keys = Object.keys(timestamps).map(Number)
-      this.lastFetched = Math.max(...keys);
+      const keys = Object.keys(timestamps).map(Number);
+      if (keys && keys.length > 0) {
+        this.lastFetched = Math.max(...keys);
+      }
       this.finishedFetchingData = true;
       if (this.$refs.liveChart) {
         this.$refs.liveChart.$data._chart.update();
@@ -344,9 +346,11 @@ export default {
         this.chartOptions.scales.yAxes[serie_index].ticks["suggestedMin"] = 0;
         this.chartOptions.scales.yAxes[serie_index].ticks["min"] = 0;
         if (this.$refs.liveChart) {
-          this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["suggestedMax"] = this.suggestedMaximums[serieName];
-          this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["suggestedMin"] = 0;
-          this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["min"] = 0;
+          if (this.$refs.liveChart.$data._chart.scales[serieName]) {
+            this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["suggestedMax"] = this.suggestedMaximums[serieName];
+            this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["suggestedMin"] = 0;
+            this.$refs.liveChart.$data._chart.scales[serieName].options.ticks["min"] = 0;
+          }
           this.$refs.liveChart.$data._chart.update();
         }
       }
@@ -356,7 +360,9 @@ export default {
       this.chartOptions.scales.yAxes[serie_index].ticks.fontColor = fontColor;
 
       if (this.$refs.liveChart) {
-        this.$refs.liveChart.$data._chart.scales[serieName].options.ticks.fontColor = fontColor;
+        if (this.$refs.liveChart.$data._chart.scales[serieName]) {
+          this.$refs.liveChart.$data._chart.scales[serieName].options.ticks.fontColor = fontColor;
+        }
         this.$refs.liveChart.updateChartStyles();
         this.$refs.liveChart.$data._chart.update();
       }
