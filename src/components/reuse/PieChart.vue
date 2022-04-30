@@ -62,7 +62,8 @@ export default {
         const currentSeries = [];
         const currentOptions = { chart: { width: 380, type: "pie" }, labels: [], responsive: [ { breakpoint: 480, options: { chart: { width: 200, }, legend: { position: "bottom" } } } ] };
         const distributions = detection_distributions[objectType];
-        for (let distributionSize in distributions) {
+        const distributionSizesOrder = Object.keys(distributions).sort((d1, d2) => ( Number(d1.match(/^\d+/)[0]) - Number(d2.match(/^\d+/)[0]) ));
+        for (let distributionSize of distributionSizesOrder) {
           currentOptions.labels.push(distributionSize);
           currentSeries.push(distributions[distributionSize]);
         }

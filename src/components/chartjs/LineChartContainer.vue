@@ -209,7 +209,7 @@ export default {
       if (this.$refs.liveChart && !reset_zoom) {
         ts_in_the_past = this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.duration;
       }
-      await this.getChartData(moment().unix() * 1000 - ts_in_the_past, moment().unix() * 1000 - 1000);
+      await this.getChartData(moment.utc().unix() * 1000 - ts_in_the_past, moment.utc().unix() * 1000 - 1000);
       this.finishedFetchingData = true;
       this.$refs.liveChart.$data.chart.options.scales.xAxes[0].realtime.delay = 0;
     },
@@ -366,6 +366,9 @@ export default {
         this.$refs.liveChart.updateChartStyles();
         this.$refs.liveChart.$data._chart.update();
       }
+    },
+    setCleanupInterval() {
+      setInterval(this.resetZoom, 30 * (60 * 1000));
     }
   },
   watch: {
@@ -404,6 +407,7 @@ export default {
   },
   mounted() {
     this.startLiveUpdate();
+    this.setCleanupInterval();
   },
   beforeRouteLeave(to, from, next) {
     this.stopLiveUpdate();
@@ -428,7 +432,7 @@ export default {
       },
       firstFetched: false,
       chartOptions: GlobalChartConfig.chartjs,
-      lastFetched: moment().unix() * 1000 - (60 * (60 * 1000)),
+      lastFetched: moment.utc().unix() * 1000 - (60 * (60 * 1000)),
       accumulatedMs: 1000,
       chartData: {
         labels: [],

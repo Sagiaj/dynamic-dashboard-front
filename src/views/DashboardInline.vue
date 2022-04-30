@@ -87,7 +87,7 @@ export default {
     },
     data() {
         return {
-          pointDensity: 100,
+          pointDensity: 500,
           CartridgeDates: {},
           notifications: [],
           SystemData: {

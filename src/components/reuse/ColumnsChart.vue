@@ -33,7 +33,7 @@ export default {
         if (this.chartOptions.xaxis.categories.findIndex(category => category === hour) === -1) {
           this.chartOptions.xaxis.categories.push(hour);
         }
-        this.series[series_idx].data.push(Number(data.unitPerML).toFixed(3));
+        this.series[series_idx].data.push(Number(data.unitPerML).toFixed(1));
       }
     } catch (err) {
       console.log("Failed populating hourly average. Error=", err);
@@ -76,7 +76,7 @@ export default {
             tooltip: {
               y: {
                 formatter: function (val) {
-                  return "Average " + Number(val).toFixed(3) + " um"
+                  return "Average " + Number(val).toFixed(1) + " um"
                 }
               }
             }
