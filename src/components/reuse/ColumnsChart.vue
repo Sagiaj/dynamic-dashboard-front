@@ -76,7 +76,7 @@ export default {
             tooltip: {
               y: {
                 formatter: function (val) {
-                  return "Average " + Number(val).toFixed(1) + " um"
+                  return "Average " + Number(val).toFixed(0) + " um"
                 }
               }
             }
